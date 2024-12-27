@@ -188,6 +188,17 @@ class ReaperCog(commands.Cog):
             )
 
         await interaction.response.send_message(embed=embed)
+        
+    @reaper_group.command(name="time", description="Check the current Reaper time")
+    async def reaper_time(self, interaction: discord.Interaction):
+        if interaction.guild_id not in self.active_games:
+            await interaction.response.send_message(
+                "No game is currently running!",
+                ephemeral=True
+            )
+            return
+        game = self.active_games[interaction.guild_id]
+        await interaction.response.send_message(f"The current timer is at {game.get_count()} seconds.")
 
 
 async def setup(bot):
