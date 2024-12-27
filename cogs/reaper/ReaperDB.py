@@ -84,3 +84,9 @@ class ReaperDB:
             (user_id, server_id)
         )
         return result[0][0] if result else None
+    
+    def end_game(self, server_id: int):
+        """Delete all scores after game is over."""
+        result = self.db.execute(
+            'DELETE FROM reaper_scores WHERE server_id = ?',
+            (server_id,))

@@ -12,7 +12,7 @@ class TaucatBot(commands.Bot):
         
     async def setup_hook(self):
         # Load all cogs
-        await self.load_extension('cogs.reaper.cog')
+        await self.load_extension('cogs.reaper.ReaperCog')
         
     async def on_ready(self):
         print(f'Logged in as {self.user}')

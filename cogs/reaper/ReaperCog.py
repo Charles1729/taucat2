@@ -98,11 +98,12 @@ class ReaperCog(commands.Cog):
                     await msg.unpin()
                 except discord.NotFound:
                     # the original message might have gotten deleted.
-                    pass  
+                    pass 
             del self.active_games[interaction.guild_id]
+            self.db.end_game(interaction.guild_id)
         
         # otherwise just tell them they reaped something.
-        await interaction.response.send_message(f"Reaped {reaped} seconds! Your current score is now {total_score}!")
+        await interaction.response.send_message(f"Reaped {reaped} seconds! You now have {total_score} seconds!")
 
     @reaper_group.command(name="end", description="End the current Reaper game")
     @app_commands.describe(reason="Reason for ending the game")
@@ -134,6 +135,7 @@ class ReaperCog(commands.Cog):
             
         # delete that active game
         del self.active_games[interaction.guild_id]
+        self.db.end_game(interaction.guild_id)
 
         end_message = f"Game {game.game_number} ended by {interaction.user.mention}"
         if reason:
@@ -142,6 +144,13 @@ class ReaperCog(commands.Cog):
 
     @reaper_group.command(name="leaderboard", description="Show the Reaper leaderboard")
     async def reaper_leaderboard(self, interaction: discord.Interaction):
+        if interaction.guild_id not in self.active_games:
+            await interaction.response.send_message(
+                "No game is currently running!",
+                ephemeral=True
+            )
+            return
+
         # get t10.
         top_scores = self.db.get_leaderboard(interaction.guild_id)
         # get your own score if you suck.
