@@ -14,21 +14,18 @@ class ReaperGame:
                      time a game is played in a server.  Starts at 1.
         end:         The number of seconds a player needs to reap to win.
         cooldown:    The number of seconds between reaps.
-        count:       Current time/seconds to reap.
+        last_reap:   The POSIX timestamp of the last reap.
         cooldowns:   An internal Dict to keep track of users and their
-                     last reap time.
+                     last reap time, as a POSIX timestamp
         message_id:  It needs to send a message.
         """
         
         self.game_number = game_number
         self.end = end
         self.cooldown = cooldown
-        self.count = 0
+        self.last_reap = datetime.now().timestamp()
         self.cooldowns: Dict[int, float] = {}
         self.message_id: Optional[int] = None
-
-    def increment_count(self):
-        self.count += 1
 
     def can_reap(self, user_id: int) -> tuple[bool, Optional[int]]:
         if user_id not in self.cooldowns:
@@ -40,7 +37,12 @@ class ReaperGame:
         return True, None
 
     def reap(self, user_id: int) -> int:
-        reaped = self.count
-        self.count = 0
-        self.cooldowns[user_id] = datetime.now().timestamp()
+        cur_time = datetime.now().timestamp()
+        reaped = int(cur_time - self.last_reap)
+        self.last_reap = cur_time
+        self.cooldowns[user_id] = cur_time
         return reaped
+    
+    def get_count(self) -> int:
+        cur_time = datetime.now().timestamp()
+        return int(cur_time - self.last_reap)

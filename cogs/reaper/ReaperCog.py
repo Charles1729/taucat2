@@ -22,20 +22,6 @@ class ReaperCog(commands.Cog):
         self.bot = bot
         self.db = ReaperDB()
         self.active_games: Dict[int, ReaperGame] = {}
-        self.count_updater.start()
-
-    def cog_unload(self):
-        self.count_updater.cancel()
-
-    @tasks.loop(seconds=1)
-    async def count_updater(self):
-        """Update all active game counters."""
-        for game in self.active_games.values():
-            game.increment_count()
-
-    @count_updater.before_loop
-    async def before_count_updater(self):
-        await self.bot.wait_until_ready()
 
     reaper_group = app_commands.Group(name="reaper", description="Reaper game commands")
 
@@ -83,6 +69,7 @@ class ReaperCog(commands.Cog):
         if not can_reap:
             await interaction.response.send_message(f"You must wait {wait_time} more seconds!", ephemeral=True)
             return
+
 
         # process the reap.
         reaped = game.reap(user_id)
@@ -170,7 +157,7 @@ class ReaperCog(commands.Cog):
                 value=f"Game #{game.game_number}\n"
                       f"Target: {game.end} seconds\n"
                       f"Cooldown: {game.cooldown} seconds\n"
-                      f"Current Count: {game.count} seconds",
+                      f"Current Count: {game.get_count()} seconds",
                 inline=False
             )
 
